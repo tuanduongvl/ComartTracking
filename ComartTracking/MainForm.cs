@@ -16,6 +16,7 @@ namespace ComartTracking
         Camera camera = new Camera("192.168.1.64", 8000, "admin", "legion@25");
         string filePath = "";
         int count = 0;
+        Conveyor conveyor;
 
         enum LotState
         {
@@ -52,6 +53,21 @@ namespace ComartTracking
         {
             if (runState == RunState.STOP)
                 return;
+            if (e == "ERROR\r")
+            {
+                //UpdateButton(btn_Start, Color.Red);
+                runState = RunState.STOP;
+                boxState = BoxState.ERROR;
+                conveyor.turnOff();
+                tb_ReEnterCode.Focus();
+                return;
+            }
+            else
+            {
+                boxState = BoxState.OK;
+                //UpdateButton(btn_Start, Color.Green);
+            }
+
             count++;
             //using the delegate to update the label
             UpdateLabel(label4, "Code: " + e);
@@ -67,17 +83,6 @@ namespace ComartTracking
                 saveBox(e, currentLot.LotID, currentLot.PartID);
             }
 
-            if (e == "ERROR\r")
-            {
-                //UpdateButton(btn_Start, Color.Red);
-                runState = RunState.STOP;
-                boxState = BoxState.ERROR;
-            }
-            else
-            {
-                boxState = BoxState.OK;
-                //UpdateButton(btn_Start, Color.Green);
-            }
         }
 
         #endregion
@@ -165,10 +170,12 @@ namespace ComartTracking
             if (runState == RunState.START)
             {
                 runState = RunState.STOP;
+                conveyor.turnOff();
             }
             else
             {
                 runState = RunState.START;
+                conveyor.turnOn();
             }
         }
         #endregion
@@ -178,6 +185,7 @@ namespace ComartTracking
 
         void init()
         {
+            conveyor = new Conveyor("COM3", 9600);
             mySQLConnectionString = "server=localhost;user id=dev;password=dev@123;database=comart";
             conn = new MySqlConnection(mySQLConnectionString);
             lotState = LotState.END;
@@ -281,6 +289,7 @@ namespace ComartTracking
             if (e.KeyCode == Keys.Enter)
             {
                 runState = RunState.START;
+                conveyor.turnOn();
                 processCode(tb_ReEnterCode.Text);
                 tb_ReEnterCode.Text = "";
             }
