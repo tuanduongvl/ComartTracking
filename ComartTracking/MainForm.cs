@@ -1,4 +1,5 @@
-﻿using MySql.Data;
+﻿using LibVLCSharp.Shared;
+using MySql.Data;
 using MySql.Data.MySqlClient;
 using System.Data;
 namespace ComartTracking
@@ -13,7 +14,7 @@ namespace ComartTracking
         RunState runState;
         BoxState boxState;
         Camera camera = new Camera("192.168.1.64", 8000, "admin", "legion@25");
-
+        string filePath = "";
         int count = 0;
 
         enum LotState
@@ -183,6 +184,7 @@ namespace ComartTracking
             runState = RunState.STOP;
             btn_NewLot.Text = "Tạo Lot mới";
             camera.connect();
+            camera.syncTime();
             reader.OnCodeRead += Reader_OnCodeRead;
             conn.Open();
             timer1.Start();
@@ -190,7 +192,7 @@ namespace ComartTracking
             camera.PlaybackprogressBar = vid_progress;
             camera.OnDownloadCompleted += () =>
             {
-                vidPlayer.URL = @"C:\temp.mp4";
+                vidPlayer.URL = filePath;
             };
         }
         void endLot()
@@ -294,8 +296,12 @@ namespace ComartTracking
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            endLot();
-            saveLot();
+            //if the lot is created then save it, but if not, just return
+            if (currentLot.realCount > 0)
+                {
+                    endLot();
+                    saveLot();
+                };
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -392,14 +398,51 @@ namespace ComartTracking
         {
             DateTime startTime = DateTime.Parse(dg_Boxes.Rows[e.RowIndex].Cells["DateTime"].Value.ToString());
             DateTime endTime = startTime.AddSeconds(5);
-            camera.downloadByTime(startTime, endTime, @"C:\temp.mp4");
-            
+            camera.downloadByTime(startTime, endTime, @"D:\temp.mp4");
+            filePath = @"D:\temp.mp4";
 
         }
 
         private void btn_Play_Click(object sender, EventArgs e)
         {
-            vidPlayer.URL = @"C:\temp.mp4";
+            //vidPlayer.URL = @"D:\temp.mp4";
+        }
+
+        private void btn_ExportVideo_Click(object sender, EventArgs e)
+        {
+            if (dg_Lot.CurrentCell == null)
+            {
+                MessageBox.Show("Chưa có Lot nào được chọn");
+                return;
+            }
+            //pop up a save file dialog to save the video file
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            saveFileDialog.Filter = "MP4 files (*.mp4)|*.mp4|All files (*.*)|*.*";
+            saveFileDialog.Title = "Save Video File";
+            saveFileDialog.FileName = "video_" + DateTime.Now.ToString("yyyyMMddHHmmss") + ".mp4";
+            if (saveFileDialog.ShowDialog() == DialogResult.OK)
+            {
+
+                DateTime startTime = DateTime.Parse(dg_Lot.Rows[dg_Lot.CurrentCell.RowIndex].Cells["DateTimeStart"].Value.ToString());
+                DateTime endTime = DateTime.Parse(dg_Lot.Rows[dg_Lot.CurrentCell.RowIndex].Cells["DateTimeEnd"].Value.ToString());
+                camera.downloadByTime(startTime, endTime, saveFileDialog.FileName);
+            }
+            Task task = new Task(() =>
+            {
+                while (true)
+                { int percent = CHCNetSDK.NET_DVR_GetDownloadPos(0); 
+                //if (percent == -1)
+                //        break;
+                    UpdateLabel(lbl_percent, "Download progress: " + percent.ToString() + "%");
+                    if (percent == 100)
+                    {
+                        filePath = saveFileDialog.FileName;
+                        break;
+                    }
+                }
+            });
+            task.Start();
+
         }
     }
 }

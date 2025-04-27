@@ -256,7 +256,36 @@ namespace ComartTracking
             else timerDownload.Start();
 
         }
+        public void syncTime()
+        {
 
+
+            CHCNetSDK.NET_DVR_TIME m_struTimeCfg = new CHCNetSDK.NET_DVR_TIME();
+            m_struTimeCfg.dwYear = (uint)DateTime.Now.Year;
+            m_struTimeCfg.dwMonth = (uint)DateTime.Now.Month;
+            m_struTimeCfg.dwDay = (uint)DateTime.Now.Day;
+            m_struTimeCfg.dwHour = (uint)DateTime.Now.Hour;
+            m_struTimeCfg.dwMinute = (uint)DateTime.Now.Minute;
+            m_struTimeCfg.dwSecond = (uint)DateTime.Now.Second;
+
+            Int32 nSize = Marshal.SizeOf(m_struTimeCfg);
+            IntPtr ptrTimeCfg = Marshal.AllocHGlobal(nSize);
+            Marshal.StructureToPtr(m_struTimeCfg, ptrTimeCfg, false);
+
+            if (!CHCNetSDK.NET_DVR_SetDVRConfig(m_lUserID, CHCNetSDK.NET_DVR_SET_TIMECFG, -1, ptrTimeCfg, (UInt32)nSize))
+            {
+                iLastErr = CHCNetSDK.NET_DVR_GetLastError();
+                strErr = "NET_DVR_SET_TIMECFG failed, error code= " + iLastErr;
+                //Failed to set the time of device and output the error code
+                MessageBox.Show(strErr);
+            }
+            else
+            {
+                //MessageBox.Show("Time sync succeeded！");
+            }
+
+            Marshal.FreeHGlobal(ptrTimeCfg);
+        }
         public void startPlayback(DateTime startTime, DateTime stopTime, nint pictureBoxHandle)
         {
             if (m_lPlayHandle >= 0)

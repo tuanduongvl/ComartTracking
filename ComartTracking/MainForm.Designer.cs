@@ -51,6 +51,8 @@
             groupBox1 = new GroupBox();
             groupBox2 = new GroupBox();
             vidPlayer = new AxWMPLib.AxWindowsMediaPlayer();
+            lbl_percent = new Label();
+            btn_ExportVideo = new Button();
             vid_progress = new ProgressBar();
             dg_Boxes = new DataGridView();
             label8 = new Label();
@@ -60,7 +62,7 @@
             btn_SearchLot = new Button();
             btn_ListLot = new Button();
             dg_Lot = new DataGridView();
-            btn_Play = new Button();
+            pictureBox1 = new PictureBox();
             statusStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)num_BoxCount).BeginInit();
             groupBox1.SuspendLayout();
@@ -68,15 +70,16 @@
             ((System.ComponentModel.ISupportInitialize)vidPlayer).BeginInit();
             ((System.ComponentModel.ISupportInitialize)dg_Boxes).BeginInit();
             ((System.ComponentModel.ISupportInitialize)dg_Lot).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             SuspendLayout();
             // 
             // btn_NewLot
             // 
             btn_NewLot.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btn_NewLot.Font = new Font("Segoe UI", 15.75F);
-            btn_NewLot.Location = new Point(633, 63);
+            btn_NewLot.Location = new Point(633, 45);
             btn_NewLot.Name = "btn_NewLot";
-            btn_NewLot.Size = new Size(185, 59);
+            btn_NewLot.Size = new Size(185, 82);
             btn_NewLot.TabIndex = 0;
             btn_NewLot.Text = "Tạo Lot mới";
             btn_NewLot.UseVisualStyleBackColor = true;
@@ -91,7 +94,7 @@
             statusStrip1.Items.AddRange(new ToolStripItem[] { statusDB, statusCamera, statusRun, statusReadError });
             statusStrip1.Location = new Point(0, 1019);
             statusStrip1.Name = "statusStrip1";
-            statusStrip1.Size = new Size(1904, 22);
+            statusStrip1.Size = new Size(1790, 22);
             statusStrip1.TabIndex = 1;
             statusStrip1.Text = "statusStrip1";
             // 
@@ -123,9 +126,9 @@
             // 
             btn_Start.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btn_Start.Font = new Font("Segoe UI", 15.75F);
-            btn_Start.Location = new Point(633, 136);
+            btn_Start.Location = new Point(633, 184);
             btn_Start.Name = "btn_Start";
-            btn_Start.Size = new Size(185, 59);
+            btn_Start.Size = new Size(185, 84);
             btn_Start.TabIndex = 2;
             btn_Start.Text = "Bắt đầu";
             btn_Start.UseVisualStyleBackColor = true;
@@ -236,8 +239,9 @@
             // 
             // groupBox2
             // 
-            groupBox2.Controls.Add(btn_Play);
             groupBox2.Controls.Add(vidPlayer);
+            groupBox2.Controls.Add(lbl_percent);
+            groupBox2.Controls.Add(btn_ExportVideo);
             groupBox2.Controls.Add(vid_progress);
             groupBox2.Controls.Add(dg_Boxes);
             groupBox2.Controls.Add(label8);
@@ -249,7 +253,7 @@
             groupBox2.Controls.Add(dg_Lot);
             groupBox2.Location = new Point(12, 274);
             groupBox2.Name = "groupBox2";
-            groupBox2.Size = new Size(1880, 729);
+            groupBox2.Size = new Size(1765, 701);
             groupBox2.TabIndex = 15;
             groupBox2.TabStop = false;
             groupBox2.Text = "Lịch sử";
@@ -257,17 +261,37 @@
             // vidPlayer
             // 
             vidPlayer.Enabled = true;
-            vidPlayer.Location = new Point(1192, 22);
+            vidPlayer.Location = new Point(1194, 22);
             vidPlayer.Name = "vidPlayer";
             vidPlayer.OcxState = (AxHost.State)resources.GetObject("vidPlayer.OcxState");
-            vidPlayer.Size = new Size(558, 366);
-            vidPlayer.TabIndex = 10;
+            vidPlayer.Size = new Size(556, 366);
+            vidPlayer.TabIndex = 15;
+            // 
+            // lbl_percent
+            // 
+            lbl_percent.AutoSize = true;
+            lbl_percent.Location = new Point(1192, 477);
+            lbl_percent.Name = "lbl_percent";
+            lbl_percent.Size = new Size(10, 15);
+            lbl_percent.TabIndex = 14;
+            lbl_percent.Text = " ";
+            // 
+            // btn_ExportVideo
+            // 
+            btn_ExportVideo.Font = new Font("Segoe UI", 15.75F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            btn_ExportVideo.Location = new Point(1191, 423);
+            btn_ExportVideo.Name = "btn_ExportVideo";
+            btn_ExportVideo.Size = new Size(235, 51);
+            btn_ExportVideo.TabIndex = 11;
+            btn_ExportVideo.Text = "Xuất video của lot";
+            btn_ExportVideo.UseVisualStyleBackColor = true;
+            btn_ExportVideo.Click += btn_ExportVideo_Click;
             // 
             // vid_progress
             // 
             vid_progress.Location = new Point(1192, 394);
             vid_progress.Name = "vid_progress";
-            vid_progress.Size = new Size(568, 23);
+            vid_progress.Size = new Size(558, 23);
             vid_progress.TabIndex = 9;
             // 
             // dg_Boxes
@@ -275,7 +299,7 @@
             dg_Boxes.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dg_Boxes.Location = new Point(720, 22);
             dg_Boxes.Name = "dg_Boxes";
-            dg_Boxes.Size = new Size(465, 701);
+            dg_Boxes.Size = new Size(465, 660);
             dg_Boxes.TabIndex = 7;
             dg_Boxes.CellClick += dg_Boxes_CellClick;
             // 
@@ -284,7 +308,7 @@
             label8.AutoSize = true;
             label8.Location = new Point(479, 151);
             label8.Name = "label8";
-            label8.Size = new Size(23, 15);
+            label8.Size = new Size(22, 15);
             label8.TabIndex = 6;
             label8.Text = "To:";
             // 
@@ -320,7 +344,7 @@
             btn_SearchLot.Name = "btn_SearchLot";
             btn_SearchLot.Size = new Size(235, 51);
             btn_SearchLot.TabIndex = 2;
-            btn_SearchLot.Text = "Search";
+            btn_SearchLot.Text = "Tìm kiếm";
             btn_SearchLot.UseVisualStyleBackColor = true;
             btn_SearchLot.Click += btn_SearchLot_Click;
             // 
@@ -331,7 +355,7 @@
             btn_ListLot.Name = "btn_ListLot";
             btn_ListLot.Size = new Size(235, 51);
             btn_ListLot.TabIndex = 1;
-            btn_ListLot.Text = "List Lots";
+            btn_ListLot.Text = "Lấy danh sách Lot";
             btn_ListLot.UseVisualStyleBackColor = true;
             btn_ListLot.Click += btn_ListLot_Click;
             // 
@@ -340,35 +364,35 @@
             dg_Lot.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dg_Lot.Location = new Point(8, 22);
             dg_Lot.Name = "dg_Lot";
-            dg_Lot.Size = new Size(465, 701);
+            dg_Lot.Size = new Size(465, 660);
             dg_Lot.TabIndex = 0;
             dg_Lot.CellClick += dg_Lot_CellClick;
             // 
-            // btn_Play
+            // pictureBox1
             // 
-            btn_Play.Font = new Font("Segoe UI", 15.75F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            btn_Play.Location = new Point(1191, 423);
-            btn_Play.Name = "btn_Play";
-            btn_Play.Size = new Size(235, 51);
-            btn_Play.TabIndex = 11;
-            btn_Play.Text = "Play";
-            btn_Play.UseVisualStyleBackColor = true;
-            btn_Play.Click += btn_Play_Click;
+            pictureBox1.Image = Properties.Resources.Logo;
+            pictureBox1.Location = new Point(1303, 12);
+            pictureBox1.Name = "pictureBox1";
+            pictureBox1.Size = new Size(459, 256);
+            pictureBox1.SizeMode = PictureBoxSizeMode.Zoom;
+            pictureBox1.TabIndex = 16;
+            pictureBox1.TabStop = false;
             // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1904, 1041);
+            ClientSize = new Size(1790, 1041);
+            Controls.Add(pictureBox1);
             Controls.Add(groupBox2);
             Controls.Add(groupBox1);
             Controls.Add(btn_Start);
             Controls.Add(statusStrip1);
             Controls.Add(btn_NewLot);
+            Icon = (Icon)resources.GetObject("$this.Icon");
             KeyPreview = true;
             Name = "MainForm";
             Text = "Comart - Hệ thống theo dõi lịch sử xuất bán";
-            WindowState = FormWindowState.Maximized;
             FormClosing += MainForm_FormClosing;
             KeyDown += MainForm_KeyDown;
             statusStrip1.ResumeLayout(false);
@@ -381,6 +405,7 @@
             ((System.ComponentModel.ISupportInitialize)vidPlayer).EndInit();
             ((System.ComponentModel.ISupportInitialize)dg_Boxes).EndInit();
             ((System.ComponentModel.ISupportInitialize)dg_Lot).EndInit();
+            ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -416,7 +441,9 @@
         private DateTimePicker dt_From;
         private DataGridView dg_Boxes;
         private ProgressBar vid_progress;
+        private PictureBox pictureBox1;
+        private Button btn_ExportVideo;
+        private Label lbl_percent;
         private AxWMPLib.AxWindowsMediaPlayer vidPlayer;
-        private Button btn_Play;
     }
 }
