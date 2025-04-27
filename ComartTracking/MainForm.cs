@@ -1,4 +1,5 @@
-﻿using LibVLCSharp.Shared;
+﻿using ClosedXML.Excel;
+using LibVLCSharp.Shared;
 using MySql.Data;
 using MySql.Data.MySqlClient;
 using System.Data;
@@ -307,10 +308,11 @@ namespace ComartTracking
         {
             //if the lot is created then save it, but if not, just return
             if (currentLot.realCount > 0)
-                {
-                    endLot();
-                    saveLot();
-                };
+            {
+                endLot();
+                saveLot();
+            }
+            ;
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -439,9 +441,10 @@ namespace ComartTracking
             Task task = new Task(() =>
             {
                 while (true)
-                { int percent = CHCNetSDK.NET_DVR_GetDownloadPos(0); 
-                //if (percent == -1)
-                //        break;
+                {
+                    int percent = CHCNetSDK.NET_DVR_GetDownloadPos(0);
+                    //if (percent == -1)
+                    //        break;
                     UpdateLabel(lbl_percent, "Download progress: " + percent.ToString() + "%");
                     if (percent == 100)
                     {
@@ -452,6 +455,45 @@ namespace ComartTracking
             });
             task.Start();
 
+        }
+
+        private void btn_exportExcel_Click(object sender, EventArgs e)
+        {
+            //export the box list in current lot to an excel file
+            if (dg_Boxes.Rows.Count == 0)
+            {
+                MessageBox.Show("Chưa có Box nào được chọn");
+                return;
+            }
+            //pop up a save file dialog to save the excel file
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            saveFileDialog.Filter = "Excel files (*.xlsx)|*.xlsx|All files (*.*)|*.*";
+            saveFileDialog.Title = "Save Excel File";
+            saveFileDialog.FileName = "BoxList_" + DateTime.Now.ToString("yyyyMMddHHmmss") + ".xlsx";
+            saveFileDialog.FilterIndex = 0;
+            if (saveFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                //create a new excel file
+                using (var workbook = new XLWorkbook())
+                {
+                    var worksheet = workbook.Worksheets.Add("Box List");
+                    //add the header
+                    for (int i = 0; i < dg_Boxes.Columns.Count; i++)
+                    {
+                        worksheet.Cell(1, i + 1).Value = dg_Boxes.Columns[i].HeaderText;
+                    }
+                    //add the data
+                    for (int i = 0; i < dg_Boxes.Rows.Count; i++)
+                    {
+                        for (int j = 0; j < dg_Boxes.Columns.Count; j++)
+                        {
+                            var cellValue = dg_Boxes.Rows[i].Cells[j].Value;
+                            worksheet.Cell(i + 2, j + 1).Value = cellValue != null ? cellValue.ToString() : string.Empty;
+                        }
+                    }
+                    workbook.SaveAs(saveFileDialog.FileName);
+                }
+            }
         }
     }
 }

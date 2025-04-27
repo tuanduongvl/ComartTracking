@@ -63,6 +63,7 @@
             btn_ListLot = new Button();
             dg_Lot = new DataGridView();
             pictureBox1 = new PictureBox();
+            btn_exportExcel = new Button();
             statusStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)num_BoxCount).BeginInit();
             groupBox1.SuspendLayout();
@@ -239,6 +240,7 @@
             // 
             // groupBox2
             // 
+            groupBox2.Controls.Add(btn_exportExcel);
             groupBox2.Controls.Add(vidPlayer);
             groupBox2.Controls.Add(lbl_percent);
             groupBox2.Controls.Add(btn_ExportVideo);
@@ -378,6 +380,17 @@
             pictureBox1.TabIndex = 16;
             pictureBox1.TabStop = false;
             // 
+            // btn_exportExcel
+            // 
+            btn_exportExcel.Font = new Font("Segoe UI", 15.75F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            btn_exportExcel.Location = new Point(1515, 423);
+            btn_exportExcel.Name = "btn_exportExcel";
+            btn_exportExcel.Size = new Size(235, 51);
+            btn_exportExcel.TabIndex = 16;
+            btn_exportExcel.Text = "Xuất lịch sử ra Excel";
+            btn_exportExcel.UseVisualStyleBackColor = true;
+            btn_exportExcel.Click += btn_exportExcel_Click;
+            // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -445,5 +458,6 @@
         private Button btn_ExportVideo;
         private Label lbl_percent;
         private AxWMPLib.AxWindowsMediaPlayer vidPlayer;
+        private Button btn_exportExcel;
     }
 }
