@@ -185,12 +185,22 @@ namespace ComartTracking
         }
 
 
-        public void setOSD(string e)
+        public bool setOSD(string [] e)
         {
+            //refesh all line osd
+            for (int i = 0; i <8; i++)
+            {
+                m_struShowStrCfg.struStringInfo[i].wShowString = 0;
+            }
+            for (int i =0 ; i < e.Length; i++)
+            {
+                m_struShowStrCfg.struStringInfo[i].sString = e[i];
+                m_struShowStrCfg.struStringInfo[i].wStringSize = (ushort)e[i].Length;
+                m_struShowStrCfg.struStringInfo[i].wShowString = 1;
+                m_struShowStrCfg.struStringInfo[i].wShowStringTopLeftX = 720/2;
+                m_struShowStrCfg.struStringInfo[i].wShowStringTopLeftY = 10;
+            }
 
-
-            m_struShowStrCfg.struStringInfo[0].sString = e;
-            m_struShowStrCfg.struStringInfo[0].wStringSize = (ushort)e.Length;
             int nSize = Marshal.SizeOf(m_struShowStrCfg);
             nint ptrShowStrCfg = Marshal.AllocHGlobal(nSize);
             Marshal.StructureToPtr(m_struShowStrCfg, ptrShowStrCfg, false);
@@ -201,8 +211,10 @@ namespace ComartTracking
                 strErr = "NET_DVR_SET_SHOWSTRING_V30 failed, error code= " + iLastErr;
                 //Failed to set overlay parameters and output the error code
                 MessageBox.Show(strErr);
+                return false;
             }
             Marshal.FreeHGlobal(ptrShowStrCfg);
+            return true;
         }
 
         public void downloadByTime(DateTime startTime, DateTime endTime, string filename)

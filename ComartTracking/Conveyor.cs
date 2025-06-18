@@ -10,19 +10,27 @@ namespace ComartTracking
 {
     internal class Conveyor
     {
-        public string port = "COM3";
+        public string port = "COM4";
         public int baudRate = 9600;
 
         ModbusClient client;
         public Conveyor(string port, int baudRate)
         {
-            this.port = port;
-            this.baudRate = baudRate;
-            client = new ModbusClient(port);
-            client.Baudrate = baudRate;
-            client.Parity = Parity.None;
-            client.StopBits = StopBits.One;
-            client.Connect();
+            try
+            {
+                this.port = port;
+                this.baudRate = baudRate;
+                client = new ModbusClient(port);
+                client.Baudrate = baudRate;
+                client.Parity = Parity.None;
+                client.StopBits = StopBits.One;
+                client.Connect();
+            }
+            catch (Exception ex )
+            {
+                MessageBox.Show("Error connecting to conveyor: " + ex.Message);
+            }
+            
         }
 
         public void turnOn()

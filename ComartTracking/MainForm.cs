@@ -8,9 +8,10 @@ namespace ComartTracking
     public partial class MainForm : Form
     {
         CodeReader reader = new CodeReader();
-        LotRecord currentLot = new LotRecord("", 0, "", DateTime.Now);
+        LotRecord currentLot = new LotRecord("", 0, "","", DateTime.Now);
         MySqlConnection conn;
         string mySQLConnectionString;
+        string LotID;
         LotState lotState;
         RunState runState;
         BoxState boxState;
@@ -18,7 +19,7 @@ namespace ComartTracking
         string filePath = "";
         int count = 0;
         Conveyor conveyor;
-
+        private bool bAutoCloseLot = false;
         enum LotState
         {
             RUNNING,
@@ -42,12 +43,166 @@ namespace ComartTracking
         {
             InitializeComponent();
             init();
-
+            if (IsLastLotEndTimeNull())
+            {
+                string info = "Chưa kết thúc Lot trước, Bạn có muốn tiếp tục không?";
+                using (FrmShowDialog frm = new FrmShowDialog(info))
+                {
+                    frm.ShowDialog();
+                    if (frm.DialogResult == DialogResult.Yes)
+                    {
+                        LotID = GetLastLotID();
+                        int defincount = int.Parse(GetDefineCountLotID(LotID));
+                        if (LotID == null)
+                        {
+                            MessageBox.Show("Không tìm thấy Lot trước, vui lòng tạo Lot mới");
+                            runState = RunState.STOP;
+                            lotState = LotState.END;
+                            btn_NewLot.Text = "Tạo Lot mới";
+                            tb_LotNo.Enabled = true;
+                            tb_ProductID.Enabled = true;
+                            num_BoxCount.Enabled = true;
+                            generateNewLot();
+                        }
+                        else
+                        {
+                            count = GetLastBoxNoForLot(LotID);
+                            if (count < 0) count = 0; //if no box found, set count to 0 
+                            tb_LotNo.Text = LotID;
+                            UpdateLabel(label5, "Count: " + count + "/" + defincount);
+                            lotState = LotState.RUNNING;
+                            currentLot = new LotRecord(LotID, (int)num_BoxCount.Value, tb_ProductID.Text,txtCustomer.Text, DateTime.Now);
+                            btn_NewLot.Text = "Kết thúc Lot";
+                            tb_LotNo.Enabled = false;
+                            tb_ProductID.Enabled = false;
+                            num_BoxCount.Value = defincount;
+                            num_BoxCount.Enabled = false;
+                        }
+                    }
+                    else
+                    {
+                        LotID = GetLastLotID();
+                        count = GetLastBoxNoForLot(LotID);
+                        if (count < 0) count = 0;
+                        DateTime dateTime = DateTime.Now;
+                        UpdateDateTimeEnd(LotID, dateTime, count);
+                    }
+                }
+            }
         }
         #region Code read event handler
         private void Reader_OnCodeRead(object? sender, string e)
         {
             processCode(e);
+        }
+        void saveLotwithoutEndtime()
+        {
+            currentLot.realCount = count;
+            // Save the current lot to the database
+            MySqlCommand cmd = new MySqlCommand("INSERT INTO LotRecord (LotID, PartID, DateTimeStart, DateTimeEnd, DefinedCount, RealCount) VALUES (@LotID, @PartID, @DateTimeStart, @DateTimeEnd, @DefinedCount, @RealCount)", conn);
+            cmd.Parameters.AddWithValue("@LotID", currentLot.LotID);
+            cmd.Parameters.AddWithValue("@PartID", currentLot.PartID);
+            cmd.Parameters.AddWithValue("@DateTimeStart", currentLot.startTime);
+            cmd.Parameters.AddWithValue("@DateTimeEnd", null);
+            cmd.Parameters.AddWithValue("@DefinedCount", currentLot.boxCount);
+            cmd.Parameters.AddWithValue("@RealCount", currentLot.realCount);
+            cmd.ExecuteNonQuery();
+        }
+        public bool IsLastLotEndTimeNull()
+        {
+            MySqlCommand cmd = new MySqlCommand("SELECT DateTimeEnd FROM LotRecord ORDER BY DateTimeStart DESC, LotID DESC LIMIT 1", conn);
+            object result = cmd.ExecuteScalar();
+
+            
+
+            if (result == DBNull.Value || result == null)
+            {
+                return true; // DateTimeEnd là NULL
+            }
+            else
+            {
+                return false; // DateTimeEnd không phải là NULL
+            }
+        }
+        public string GetLastLotID()
+        {
+            MySqlCommand cmd = new MySqlCommand("SELECT LotID FROM LotRecord ORDER BY DateTimeStart DESC, LotID DESC LIMIT 1", conn);
+            object result = cmd.ExecuteScalar();
+            if (result != null && result != DBNull.Value)
+            {
+                return result.ToString(); // Trả về LotID nếu không phải NULL
+            }
+            else
+            {
+                return string.Empty; // Trả về chuỗi rỗng nếu không có LotID
+            }
+        }
+        public string GetDefineCountLotID(string lotId)
+        {
+            try
+            {
+                string query = "SELECT DefinedCount FROM comart.lotrecord WHERE LotID = @LotID";
+                MySqlCommand cmd = new MySqlCommand(query, conn);
+                cmd.Parameters.AddWithValue("@LotID", lotId); // Truyền giá trị LotID vào tham số
+
+                object result = cmd.ExecuteScalar();
+                if (result != null && result != DBNull.Value)
+                {
+                    return result.ToString(); // Trả về LotID nếu không phải NULL
+                }
+                else
+                {
+                    return string.Empty; // Trả về chuỗi rỗng nếu không có LotID
+                }
+            }
+            catch (Exception)
+            {
+                return string.Empty; // Trả về chuỗi rỗng nếu không có LotID
+            }
+            
+        }
+        public int GetLastBoxNoForLot(string lotId) // Giả sử LotID là string, nếu là int thì đổi kiểu dữ liệu
+        {
+            int lastBoxNo = -1; // Giá trị mặc định nếu không tìm thấy hoặc có lỗi
+            try
+            {
+
+                // Câu lệnh SQL đã sửa đổi để lọc theo LotID
+                string query = "SELECT BoxNo FROM BoxRecord WHERE LotID = @LotID ORDER BY DateTime DESC, BoxID DESC LIMIT 1;";
+                // Ghi chú: Nếu BoxID không phải là cột ID tự tăng, hãy bỏ "BoxID DESC" khỏi ORDER BY.
+
+                MySqlCommand cmd = new MySqlCommand(query, conn);
+                cmd.Parameters.AddWithValue("@LotID", lotId); // Truyền giá trị LotID vào tham số
+
+                object result = cmd.ExecuteScalar();
+
+                if (result != null && result != DBNull.Value)
+                {
+                    lastBoxNo = Convert.ToInt32(result); // Chuyển đổi kết quả sang kiểu int
+                }
+            }
+            catch (Exception ex)
+            {
+                // Ghi log lỗi hoặc xử lý theo cách phù hợp với ứng dụng của bạn
+                Console.WriteLine("Lỗi khi lấy BoxNo cuối cùng: " + ex.Message);
+            }
+            return lastBoxNo;
+        }
+        public void UpdateDateTimeEnd(string lotId, DateTime newDateTimeEnd, int count)
+        {
+            try
+            {
+                string query = "UPDATE LotRecord SET DateTimeEnd = @NewDateTime, RealCount = @RealCount WHERE LotID = @LotID;";
+                MySqlCommand cmd = new MySqlCommand(query, conn);
+                cmd.Parameters.AddWithValue("@LotID", lotId);
+                cmd.Parameters.AddWithValue("@NewDateTime", newDateTimeEnd);
+                cmd.Parameters.AddWithValue("@RealCount", count);
+                cmd.ExecuteNonQuery();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Lỗi khi cập nhật DateTimeEnd: " + ex.Message);
+            }
         }
 
         void processCode(string e)
@@ -73,17 +228,46 @@ namespace ComartTracking
             //using the delegate to update the label
             UpdateLabel(label4, "Code: " + e);
             UpdateLabel(label5, "Count: " + count + "/" + currentLot.boxCount);
-
             //if the lot is running, save the box
             if (lotState == LotState.RUNNING)
             {
                 //write the box code to camera overlay
-                camera.setOSD("Code: " + e + ", Count: " + count + "/" + currentLot.boxCount);
-                //camera.setText(e);
-                //save the box to the database
-                saveBox(e, currentLot.LotID, currentLot.PartID);
-            }
+                string[] overlap = new string[3];
+                overlap[0] = "Customer: " + currentLot.CustomerID;
+                overlap[1] = "Part ID: " + currentLot.PartID; 
+                overlap[2] = "Code: " + e + ", Count: " + count + "/" + currentLot.boxCount;
 
+                if(!camera.setOSD(overlap))
+                {
+                    //UpdateButton(btn_Start, Color.Red);
+                    runState = RunState.STOP;
+                    boxState = BoxState.ERROR;
+                    conveyor.turnOff();
+                    tb_ReEnterCode.Focus();
+                    count--;
+                    return;
+                }    
+               //camera.setText(e);
+               //save the box to the database
+               saveBox(e, currentLot.LotID, currentLot.PartID);
+            }
+            if(bAutoCloseLot)
+            {
+                if(count == currentLot.boxCount)
+                {
+                    runState = RunState.STOP;
+                    endLot();
+                    saveLot();
+                    lotState = LotState.END;
+                    btn_NewLot.Text = "Tạo Lot mới";
+                    tb_LotNo.Enabled = true;
+                    tb_ProductID.Enabled = true;
+                    num_BoxCount.Enabled = true;
+                    generateNewLot();
+                    camera.setOSD(new string[1] { "Idel" });
+                    conveyor.turnOff();
+                }    
+            }    
         }
 
         #endregion
@@ -139,35 +323,48 @@ namespace ComartTracking
                 case LotState.RUNNING:
                     runState = RunState.STOP;
                     endLot();
-                    saveLot();
+                    UpdateDateTimeEnd(LotID, currentLot.endTime, (int)num_BoxCount.Value);
                     lotState = LotState.END;
                     btn_NewLot.Text = "Tạo Lot mới";
                     tb_LotNo.Enabled = true;
                     tb_ProductID.Enabled = true;
                     num_BoxCount.Enabled = true;
                     generateNewLot();
+                    camera.setOSD(new string[1] {"Idel"});
                     break;
                 case LotState.END:
+                    if ((int)num_BoxCount.Value == 0)
+                    {
+                        MessageBox.Show("Số lượng thùng cần lớn hơn 0!!!!");
+                        return;
+                    }
                     count = 0;
                     lotState = LotState.RUNNING;
-                    currentLot = new LotRecord(tb_LotNo.Text, (int)num_BoxCount.Value, tb_ProductID.Text, DateTime.Now);
+                    currentLot = new LotRecord(LotID, (int)num_BoxCount.Value, tb_ProductID.Text,txtCustomer.Text, DateTime.Now);
+                    label4.Text = "Code:";
+                    label5.Text = $"Count: 0/{(int)num_BoxCount.Value}";
                     btn_NewLot.Text = "Kết thúc Lot";
                     tb_LotNo.Enabled = false;
-                    tb_ProductID.Enabled = false;
+                    //tb_ProductID.Enabled = false;
                     num_BoxCount.Enabled = false;
+                    saveLotwithoutEndtime();
                     break;
-
-
-
             }
         }
 
         void generateNewLot()
         {
+            LotID = "";
             tb_LotNo.Text = DateTime.Now.ToString("yyyyMMddHHmmss");
+            LotID = DateTime.Now.ToString("yyyyMMddHHmmss");
         }
         private void btn_Start_Click(object sender, EventArgs e)
         {
+            if(lotState != LotState.RUNNING)
+            {
+                MessageBox.Show("Bạn cần tạo lot mới trước khi chạy băng tải.");
+                return;
+            }    
             if (runState == RunState.START)
             {
                 runState = RunState.STOP;
@@ -186,7 +383,7 @@ namespace ComartTracking
 
         void init()
         {
-            conveyor = new Conveyor("COM3", 9600);
+            conveyor = new Conveyor("COM4", 9600);
             mySQLConnectionString = "server=localhost;user id=dev;password=dev@123;database=comart";
             conn = new MySqlConnection(mySQLConnectionString);
             lotState = LotState.END;
@@ -208,7 +405,6 @@ namespace ComartTracking
         {
             if (currentLot != null)
                 currentLot.endTime = DateTime.Now;
-
         }
 
         void saveLot()
@@ -224,7 +420,6 @@ namespace ComartTracking
             cmd.Parameters.AddWithValue("@RealCount", currentLot.realCount);
             cmd.ExecuteNonQuery();
         }
-
         void saveBox(string boxID, string lotID, string partID)
         {
             // Save the current box to the database
@@ -283,8 +478,6 @@ namespace ComartTracking
             #endregion
 
         }
-
-
         private void tb_ReEnterCode_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Enter)
@@ -312,7 +505,6 @@ namespace ComartTracking
                 endLot();
                 saveLot();
             }
-            ;
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -494,6 +686,11 @@ namespace ComartTracking
                     workbook.SaveAs(saveFileDialog.FileName);
                 }
             }
+        }
+
+        private void MainForm_Load(object sender, EventArgs e)
+        {
+            camera.setOSD( new string[1] {"Idel"});
         }
     }
 }

@@ -49,7 +49,10 @@
             tb_ReEnterCode = new TextBox();
             label6 = new Label();
             groupBox1 = new GroupBox();
+            txtCustomer = new TextBox();
+            label9 = new Label();
             groupBox2 = new GroupBox();
+            btn_exportExcel = new Button();
             vidPlayer = new AxWMPLib.AxWindowsMediaPlayer();
             lbl_percent = new Label();
             btn_ExportVideo = new Button();
@@ -63,7 +66,6 @@
             btn_ListLot = new Button();
             dg_Lot = new DataGridView();
             pictureBox1 = new PictureBox();
-            btn_exportExcel = new Button();
             statusStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)num_BoxCount).BeginInit();
             groupBox1.SuspendLayout();
@@ -162,9 +164,9 @@
             // 
             // tb_ProductID
             // 
-            tb_ProductID.Location = new Point(154, 80);
+            tb_ProductID.Location = new Point(194, 80);
             tb_ProductID.Name = "tb_ProductID";
-            tb_ProductID.Size = new Size(455, 35);
+            tb_ProductID.Size = new Size(415, 35);
             tb_ProductID.TabIndex = 5;
             // 
             // label3
@@ -179,6 +181,7 @@
             // num_BoxCount
             // 
             num_BoxCount.Location = new Point(509, 33);
+            num_BoxCount.Maximum = new decimal(new int[] { 5000, 0, 0, 0 });
             num_BoxCount.Name = "num_BoxCount";
             num_BoxCount.Size = new Size(100, 35);
             num_BoxCount.TabIndex = 9;
@@ -226,8 +229,10 @@
             groupBox1.Controls.Add(tb_ReEnterCode);
             groupBox1.Controls.Add(label1);
             groupBox1.Controls.Add(label5);
+            groupBox1.Controls.Add(txtCustomer);
             groupBox1.Controls.Add(tb_ProductID);
             groupBox1.Controls.Add(label4);
+            groupBox1.Controls.Add(label9);
             groupBox1.Controls.Add(label2);
             groupBox1.Controls.Add(label3);
             groupBox1.Font = new Font("Segoe UI", 15.75F);
@@ -237,6 +242,22 @@
             groupBox1.TabIndex = 14;
             groupBox1.TabStop = false;
             groupBox1.Text = "Vận hành";
+            // 
+            // txtCustomer
+            // 
+            txtCustomer.Location = new Point(194, 127);
+            txtCustomer.Name = "txtCustomer";
+            txtCustomer.Size = new Size(415, 35);
+            txtCustomer.TabIndex = 5;
+            // 
+            // label9
+            // 
+            label9.AutoSize = true;
+            label9.Location = new Point(8, 127);
+            label9.Name = "label9";
+            label9.Size = new Size(157, 30);
+            label9.TabIndex = 6;
+            label9.Text = "Mã khách hàng";
             // 
             // groupBox2
             // 
@@ -259,6 +280,17 @@
             groupBox2.TabIndex = 15;
             groupBox2.TabStop = false;
             groupBox2.Text = "Lịch sử";
+            // 
+            // btn_exportExcel
+            // 
+            btn_exportExcel.Font = new Font("Segoe UI", 15.75F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            btn_exportExcel.Location = new Point(1515, 423);
+            btn_exportExcel.Name = "btn_exportExcel";
+            btn_exportExcel.Size = new Size(235, 51);
+            btn_exportExcel.TabIndex = 16;
+            btn_exportExcel.Text = "Xuất lịch sử ra Excel";
+            btn_exportExcel.UseVisualStyleBackColor = true;
+            btn_exportExcel.Click += btn_exportExcel_Click;
             // 
             // vidPlayer
             // 
@@ -380,17 +412,6 @@
             pictureBox1.TabIndex = 16;
             pictureBox1.TabStop = false;
             // 
-            // btn_exportExcel
-            // 
-            btn_exportExcel.Font = new Font("Segoe UI", 15.75F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            btn_exportExcel.Location = new Point(1515, 423);
-            btn_exportExcel.Name = "btn_exportExcel";
-            btn_exportExcel.Size = new Size(235, 51);
-            btn_exportExcel.TabIndex = 16;
-            btn_exportExcel.Text = "Xuất lịch sử ra Excel";
-            btn_exportExcel.UseVisualStyleBackColor = true;
-            btn_exportExcel.Click += btn_exportExcel_Click;
-            // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -407,6 +428,7 @@
             Name = "MainForm";
             Text = "Comart - Hệ thống theo dõi lịch sử xuất bán";
             FormClosing += MainForm_FormClosing;
+            Load += MainForm_Load;
             KeyDown += MainForm_KeyDown;
             statusStrip1.ResumeLayout(false);
             statusStrip1.PerformLayout();
@@ -459,5 +481,7 @@
         private Label lbl_percent;
         private AxWMPLib.AxWindowsMediaPlayer vidPlayer;
         private Button btn_exportExcel;
+        private TextBox txtCustomer;
+        private Label label9;
     }
 }

@@ -12,16 +12,18 @@ namespace ComartTracking
         public string LotID { get; set; }
         public string PartID { get; set; }
         public int realCount { get; set; }
+        public string CustomerID { get; set; }
         public DateTime startTime { get; set; }
 
         public DateTime endTime { get; set; }
 
-        public LotRecord(string LotID, int boxCount, string PartID, DateTime startTime)
+        public LotRecord(string LotID, int boxCount, string PartID, string CustomerID, DateTime startTime)
         {
             this.boxCount = boxCount;
             this.LotID = LotID;
             this.startTime = startTime;
             this.PartID = PartID;
+            this.CustomerID = CustomerID;
         }
 
     }
